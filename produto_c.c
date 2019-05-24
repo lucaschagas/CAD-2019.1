@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <omp.h>
 
 // Para executar em Linux:
-// gcc produto_c.c -o produto_c
+// gcc produto_c.c -o produto_c -fopenmp
 // ./produto_c num_linhas num_colunas
 
 int main(int argc,char *argv[]){
@@ -28,10 +29,14 @@ int main(int argc,char *argv[]){
 
     clock_gettime(CLOCK_MONOTONIC, &start);
 
+    int i_matriz;
+    int j_matriz;
+
     // Construindo a matriz de valores aleatorios
-    for (int i=0; i<atoi(argv[1]); i++){
-        for (int j=0; j<atoi(argv[2]); j=j+1){
-            matriz[i][j]=rand()/1000.0;
+    #pragma omp parallel for num_threads(4) private(i_matriz,j_matriz) shared(matriz)
+    for (int i_matriz = 0; i_matriz<atoi(argv[1]); i_matriz++){
+        for (int j_matriz = 0; j_matriz<atoi(argv[2]); j_matriz=j_matriz+1){
+            matriz[i_matriz][j_matriz]=rand()/1000.0;
         }
     }
 
@@ -44,9 +49,12 @@ int main(int argc,char *argv[]){
 
     clock_gettime(CLOCK_MONOTONIC, &start);
 
+    int i_vetor;
+
     // Construindo o vetor de numeros aleatorios
-    for (int i=0; i<atoi(argv[2]); i++){
-        vetor[i]=rand()/1000.0;
+    #pragma omp parallel for num_threads(4) private(i_vetor) shared(vetor)
+    for (int i_vetor=0; i_vetor<atoi(argv[2]); i_vetor++){
+        vetor[i_vetor]=rand()/1000.0;
     }
 
     clock_gettime(CLOCK_MONOTONIC, &finish);
@@ -58,11 +66,15 @@ int main(int argc,char *argv[]){
 
     clock_gettime(CLOCK_MONOTONIC, &start);
 
+    int i_linha;
+    int j_linha;
+
     // Calculando produto em linha
-    for (int i=0; i<atoi(argv[1]); i++){
-        resultado[i]=0.0;
-        for (int j=0; j<atoi(argv[2]); j++){
-            resultado[i]=resultado[i]+matriz[i][j]*vetor[j];
+    #pragma omp parallel for num_threads(4) private(i_linha, j_linha) shared(resultado)
+    for (int i_linha=0; i_linha<atoi(argv[1]); i_linha++){
+        resultado[i_linha]=0.0;
+        for (int j_linha=0; j_linha<atoi(argv[2]); j_linha++){
+            resultado[i_linha]=resultado[i_linha]+matriz[i_linha][j_linha]*vetor[j_linha];
         }
     }
 
@@ -80,10 +92,14 @@ int main(int argc,char *argv[]){
 
     clock_gettime(CLOCK_MONOTONIC, &start);
 
+    int i_coluna;
+    int j_coluna;
+
     // Calculando o produto em coluna
-    for (int j=0; j<atoi(argv[2]); j++){
-        for (int i=0; i<atoi(argv[1]); i++){
-            resultado[i]=resultado[i]+matriz[i][j]*vetor[j];
+    #pragma omp parallel for num_threads(4) private(i_coluna, j_coluna) shared(resultado)
+    for (int j_coluna=0; j_coluna<atoi(argv[2]); j_coluna++){
+        for (int i_coluna=0; i_coluna<atoi(argv[1]); i_coluna++){
+            resultado[i_coluna]=resultado[i_coluna]+matriz[i_coluna][j_coluna]*vetor[j_coluna];
         }
     }
 
