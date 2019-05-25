@@ -1,13 +1,12 @@
     program produto
-        use omp_lib
         implicit none
 
         ! Para executar em Linux:
-        ! gfortran produto_fortran.f95 -o produto_f -mcmodel=large -fopenmp
+        ! gfortran produto_fortran.f95 -o produto_f -mcmodel=large
         ! ./produto_f 
 
         ! Determinar a quantidade de linhas e colunas na linha abaixo antes de compilar o código
-        integer, parameter :: num_linhas = 2000, num_colunas = 2000
+        integer, parameter :: num_linhas = 32000, num_colunas = 32000
         real*8 :: matriz(num_linhas,num_colunas), vetor(num_linhas), resultado(num_linhas)
 
         call produto_mv(matriz, vetor, resultado, num_linhas, num_colunas)
@@ -19,13 +18,10 @@
         real*8 vetor(n)
         real(kind=8) :: r
 
-!$omp parallel do num_threads(4) private(i) shared(vetor)
         do i=1, n
             call random_number(r)
             vetor(i) = r
         end do
-!$omp end parallel do
-
     end subroutine
 
     subroutine preencher_matriz(matriz, m, n)
@@ -33,15 +29,12 @@
         real*8 matriz(m,n)
         real(kind=8) :: r
 
-!$omp parallel do num_threads(4) private(i,j) shared(matriz)
         do i = 1, m
             do j = 1, n
                 call random_number(r)
                 matriz(i,j) = r
             end do
         end do
-!$omp end parallel do
-
     end subroutine
 
     subroutine zerar_resultados(vetor, n)
@@ -72,16 +65,13 @@
 
 
         call zerar_resultados(resultado,n)
-        call cpu_time(start)
 
-!$omp parallel do num_threads(4) private(i,j) shared(resultado)        
+        call cpu_time(start)
         do i = 1, n
             do j = 1, m
                 resultado(i) = resultado(i) + matriz(i, j)*vetor(j)
             end do
         end do
-!$omp end parallel do
-
         call cpu_time(end)
 
         t = end - start
@@ -90,15 +80,11 @@
         call zerar_resultados(resultado,n)
 
         call cpu_time(start)
-
-!$omp parallel do num_threads(4) private(i,j) shared(resultado)        
         do j = 1, m
             do i = 1, n
                 resultado(i) = resultado(i) + matriz(i, j)*vetor(j)
             end do
         end do
-!$omp end parallel do
-
         call cpu_time(end)
 
         t = end - start
